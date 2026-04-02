@@ -22,6 +22,7 @@ export default function StudyNotesApp() {
 		preview,
 		isDragging,
 		user,
+		authLoading,
 		dbNotes,
 		dbNotesLoading,
 		editingNote,
@@ -39,6 +40,39 @@ export default function StudyNotesApp() {
 	} = useStudyNotes();
 
 	const currentNote = activeNote >= 0 ? notes[activeNote] : null;
+
+	if (authLoading) {
+		return (
+			<div className="auth-overlay">
+				<link href={FONTS_LINK} rel="stylesheet" />
+				<div className="auth-modal" style={{ textAlign: "center" }}>
+					<h2
+						style={{
+							marginBottom: "8px",
+							fontFamily: "'Newsreader', serif",
+							fontSize: "32px",
+							fontWeight: 500,
+							color: "#111111",
+							letterSpacing: "-0.03em",
+						}}
+					>
+						Restoring session
+					</h2>
+					<p
+						style={{
+							margin: 0,
+							fontSize: "14px",
+							lineHeight: 1.6,
+							color: "#4B5563",
+							fontFamily: "'DM Sans', sans-serif",
+						}}
+					>
+						Validating your saved login and loading your notes.
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	if (!user) return <Auth onAuth={() => {}} />;
 

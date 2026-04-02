@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "../lib/supabase";
-import { User } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
 
 export type SectionType =
 	| "concept"
@@ -41,30 +41,31 @@ export function useStudyNotes() {
 	const [preview, setPreview] = useState<PreviewState | null>(null);
 	const [isDragging, setIsDragging] = useState<boolean>(false);
 	const [user, setUser] = useState<User | null>(null);
+	const [authLoading, setAuthLoading] = useState<boolean>(true);
 	const [dbNotes, setDbNotes] = useState<DbNote[]>([]);
 	const [dbNotesLoading, setDbNotesLoading] = useState<boolean>(false);
 	const [editingNote, setEditingNote] = useState<DbNote | null>(null);
 	const [supabase] = useState(() => createClient());
 
-	const loadNotes = useCallback(async () => {
+	const loadNotes = useCallback(
+		async (accessToken?: string) => {
 		setDbNotesLoading(true);
 		try {
-			// Get the current session token
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
+			const token =
+				accessToken ??
+				(
+					await supabase.auth.getSession()
+				).data.session?.access_token;
 
-			if (!session?.access_token) {
-				console.error("No active session");
+			if (!token) {
 				setDbNotes([]);
 				return;
 			}
 
-			// Call the protected API endpoint with the session token
 			const response = await fetch("/api/notes", {
 				method: "GET",
 				headers: {
-					Authorization: `Bearer ${session.access_token}`,
+					Authorization: `Bearer ${token}`,
 				},
 			});
 
@@ -77,28 +78,67 @@ export function useStudyNotes() {
 
 			const { notes } = await response.json();
 			setDbNotes(notes ?? []);
+		} catch (err) {
+			console.error("Failed to load saved notes:", err);
+			setDbNotes([]);
 		} finally {
 			setDbNotesLoading(false);
 		}
-	}, [supabase]);
+		},
+		[supabase],
+	);
 
-	useEffect(() => {
-		// Listen for auth changes - this will fire immediately if user is already logged in
-		const {
-			data: { subscription },
-		} = supabase.auth.onAuthStateChange(async (event, session) => {
+	const syncSessionState = useCallback(
+		async (session: Session | null) => {
 			const signedInUser = session?.user ?? null;
 			setUser(signedInUser);
-			// Fetch notes immediately when user logs in
-			if (signedInUser) {
-				await loadNotes();
-			} else {
+
+			if (!signedInUser) {
 				setDbNotes([]);
+				setDbNotesLoading(false);
+				return;
 			}
+
+			await loadNotes(session?.access_token);
+		},
+		[loadNotes],
+	);
+
+	useEffect(() => {
+		let isActive = true;
+
+		const initializeSession = async () => {
+			try {
+				const {
+					data: { session },
+				} = await supabase.auth.getSession();
+
+				if (!isActive) return;
+				await syncSessionState(session);
+			} finally {
+				if (isActive) {
+					setAuthLoading(false);
+				}
+			}
+		};
+
+		void initializeSession();
+
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			void syncSessionState(session).finally(() => {
+				if (isActive) {
+					setAuthLoading(false);
+				}
+			});
 		});
 
-		return () => subscription.unsubscribe();
-	}, [supabase, loadNotes]);
+		return () => {
+			isActive = false;
+			subscription.unsubscribe();
+		};
+	}, [supabase, syncSessionState]);
 
 	const saveNote = async (note: StudyNote) => {
 		if (!user) return;
@@ -201,6 +241,7 @@ export function useStudyNotes() {
 		preview,
 		isDragging,
 		user,
+		authLoading,
 		dbNotes,
 		dbNotesLoading,
 		editingNote,
