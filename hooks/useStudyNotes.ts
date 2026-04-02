@@ -49,41 +49,44 @@ export function useStudyNotes() {
 
 	const loadNotes = useCallback(
 		async (accessToken?: string) => {
-		setDbNotesLoading(true);
-		try {
-			const token =
-				accessToken ??
-				(
-					await supabase.auth.getSession()
-				).data.session?.access_token;
+			setDbNotesLoading(true);
+			try {
+				const token =
+					accessToken ?? (await supabase.auth.getSession()).data.session?.access_token;
 
-			if (!token) {
+				if (!token) {
+					setDbNotes([]);
+					return;
+				}
+
+				const response = await fetch("/api/notes", {
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+
+				if (!response.ok) {
+					const errorData = await response.json();
+
+					if (response.status === 401) {
+						await supabase.auth.signOut();
+						setUser(null);
+					}
+
+					console.error("Failed to fetch notes:", errorData.error);
+					setDbNotes([]);
+					return;
+				}
+
+				const { notes } = await response.json();
+				setDbNotes(notes ?? []);
+			} catch (err) {
+				console.error("Failed to load saved notes:", err);
 				setDbNotes([]);
-				return;
+			} finally {
+				setDbNotesLoading(false);
 			}
-
-			const response = await fetch("/api/notes", {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				console.error("Failed to fetch notes:", errorData.error);
-				setDbNotes([]);
-				return;
-			}
-
-			const { notes } = await response.json();
-			setDbNotes(notes ?? []);
-		} catch (err) {
-			console.error("Failed to load saved notes:", err);
-			setDbNotes([]);
-		} finally {
-			setDbNotesLoading(false);
-		}
 		},
 		[supabase],
 	);
@@ -112,6 +115,24 @@ export function useStudyNotes() {
 				const {
 					data: { session },
 				} = await supabase.auth.getSession();
+
+				if (!session) {
+					if (!isActive) return;
+					await syncSessionState(null);
+					return;
+				}
+
+				const {
+					data: { user },
+					error,
+				} = await supabase.auth.getUser();
+
+				if (error || !user) {
+					await supabase.auth.signOut();
+					if (!isActive) return;
+					await syncSessionState(null);
+					return;
+				}
 
 				if (!isActive) return;
 				await syncSessionState(session);
