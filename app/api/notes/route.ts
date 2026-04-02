@@ -1,15 +1,26 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Use service role key for server-side operations
-const supabase = createClient(
-	process.env.NEXT_PUBLIC_SUPABASE_URL!,
-	process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
 	try {
-		// Get the auth token from the Authorization header
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+		const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+		const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+		if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+			return NextResponse.json(
+				{
+					error:
+						"Missing Supabase environment variables. Expected NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY.",
+				},
+				{ status: 500 },
+			);
+		}
+
+		const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
 		const authHeader = request.headers.get("authorization");
 		const token = authHeader?.replace("Bearer ", "");
 
@@ -20,20 +31,14 @@ export async function GET(request: Request) {
 			);
 		}
 
-		// Create a client with the user's token to verify their session
-		const userClient = createClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-			{
-				global: {
-					headers: {
-						authorization: `Bearer ${token}`,
-					},
+		const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+			global: {
+				headers: {
+					authorization: `Bearer ${token}`,
 				},
 			},
-		);
+		});
 
-		// Verify the session by getting the user
 		const {
 			data: { user },
 			error: authError,
@@ -46,7 +51,6 @@ export async function GET(request: Request) {
 			);
 		}
 
-		// Fetch notes for this specific user
 		const { data: notes, error: notesError } = await supabase
 			.from("notes")
 			.select("*")
