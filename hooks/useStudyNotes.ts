@@ -89,7 +89,6 @@ export function useStudyNotes() {
 		} = supabase.auth.onAuthStateChange(async (event, session) => {
 			const signedInUser = session?.user ?? null;
 			setUser(signedInUser);
-			
 			// Fetch notes immediately when user logs in
 			if (signedInUser) {
 				await loadNotes();

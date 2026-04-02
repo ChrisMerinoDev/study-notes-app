@@ -54,10 +54,7 @@ export async function GET(request: Request) {
 			.order("created_at", { ascending: false });
 
 		if (notesError) {
-			return NextResponse.json(
-				{ error: notesError.message },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: notesError.message }, { status: 400 });
 		}
 
 		return NextResponse.json({ notes });
