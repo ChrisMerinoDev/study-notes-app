@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "../lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -46,6 +46,7 @@ export function useStudyNotes() {
 	const [dbNotesLoading, setDbNotesLoading] = useState<boolean>(false);
 	const [editingNote, setEditingNote] = useState<DbNote | null>(null);
 	const [supabase] = useState(() => createClient());
+	const lastLoadedTokenRef = useRef<string | null>(null);
 
 	const loadNotes = useCallback(
 		async (accessToken?: string) => {
@@ -92,17 +93,26 @@ export function useStudyNotes() {
 	);
 
 	const syncSessionState = useCallback(
-		async (session: Session | null) => {
+		async (session: Session | null, forceReload = false) => {
 			const signedInUser = session?.user ?? null;
 			setUser(signedInUser);
 
 			if (!signedInUser) {
+				lastLoadedTokenRef.current = null;
 				setDbNotes([]);
 				setDbNotesLoading(false);
 				return;
 			}
 
-			await loadNotes(session?.access_token);
+			const accessToken = session?.access_token ?? null;
+
+			if (!forceReload && lastLoadedTokenRef.current === accessToken) {
+				setDbNotesLoading(false);
+				return;
+			}
+
+			lastLoadedTokenRef.current = accessToken;
+			await loadNotes(accessToken ?? undefined);
 		},
 		[loadNotes],
 	);
@@ -135,7 +145,7 @@ export function useStudyNotes() {
 				}
 
 				if (!isActive) return;
-				await syncSessionState(session);
+				await syncSessionState(session, true);
 			} finally {
 				if (isActive) {
 					setAuthLoading(false);
@@ -147,7 +157,11 @@ export function useStudyNotes() {
 
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange((_event, session) => {
+		} = supabase.auth.onAuthStateChange((event, session) => {
+			if (event === "INITIAL_SESSION") {
+				return;
+			}
+
 			void syncSessionState(session).finally(() => {
 				if (isActive) {
 					setAuthLoading(false);
