@@ -2,7 +2,7 @@ import type { DbNote } from "../../hooks/useStudyNotes";
 
 type SavedNotesProps = {
 	notes: DbNote[];
-	activeIdx: number;
+	activeId: string | null;
 	onSelect: (index: number) => void;
 	onEdit: (index: number) => void;
 	onDelete: (id: string) => void;
@@ -10,7 +10,7 @@ type SavedNotesProps = {
 
 function SavedNotes({
 	notes,
-	activeIdx,
+	activeId,
 	onSelect,
 	onEdit,
 	onDelete,
@@ -43,9 +43,11 @@ function SavedNotes({
 							padding: "10px 14px",
 							borderRadius: "10px",
 							cursor: "pointer",
-							background: activeIdx === i ? "#EEF2FF" : "transparent",
+							background: activeId === note.id ? "#EEF2FF" : "transparent",
 							border:
-								activeIdx === i ? "1px solid #C7D2FE" : "1px solid transparent",
+								activeId === note.id
+									? "1px solid #C7D2FE"
+									: "1px solid transparent",
 							transition: "all 0.2s ease",
 						}}
 					>
@@ -54,7 +56,7 @@ function SavedNotes({
 								fontFamily: "'DM Sans', sans-serif",
 								fontSize: "13px",
 								fontWeight: 500,
-								color: activeIdx === i ? "#4338CA" : "#4B5563",
+								color: activeId === note.id ? "#4338CA" : "#4B5563",
 								overflow: "hidden",
 								textOverflow: "ellipsis",
 								whiteSpace: "nowrap",

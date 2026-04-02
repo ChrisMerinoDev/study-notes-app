@@ -25,9 +25,11 @@ export default function StudyNotesApp() {
 		authLoading,
 		dbNotes,
 		dbNotesLoading,
+		activeDbNoteId,
 		editingNote,
 		setNotes,
 		setActiveNote,
+		setActiveDbNoteId,
 		setPreview,
 		setIsDragging,
 		setEditingNote,
@@ -133,12 +135,13 @@ export default function StudyNotesApp() {
 					</div>
 
 					{/* New Note button */}
-					<button
-						onClick={() => {
-							setActiveNote(-1);
-							setPreview(null);
-							setError(null);
-						}}
+						<button
+							onClick={() => {
+								setActiveNote(-1);
+								setActiveDbNoteId(null);
+								setPreview(null);
+								setError(null);
+							}}
 						style={{
 							background: "#1a1a2e",
 							color: "#fff",
@@ -173,10 +176,11 @@ export default function StudyNotesApp() {
 					) : (
 						<SavedNotes
 							notes={dbNotes}
-							activeIdx={activeNote}
+							activeId={activeDbNoteId}
 							onSelect={(i) => {
 								setNotes([dbNotes[i]]);
 								setActiveNote(0);
+								setActiveDbNoteId(dbNotes[i].id);
 							}}
 							onEdit={(i) => setEditingNote(dbNotes[i])}
 							onDelete={(id) => deleteNote(id)}

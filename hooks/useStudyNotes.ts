@@ -44,6 +44,7 @@ export function useStudyNotes() {
 	const [authLoading, setAuthLoading] = useState<boolean>(true);
 	const [dbNotes, setDbNotes] = useState<DbNote[]>([]);
 	const [dbNotesLoading, setDbNotesLoading] = useState<boolean>(false);
+	const [activeDbNoteId, setActiveDbNoteId] = useState<string | null>(null);
 	const [editingNote, setEditingNote] = useState<DbNote | null>(null);
 	const [supabase] = useState(() => createClient());
 	const lastLoadedTokenRef = useRef<string | null>(null);
@@ -99,6 +100,7 @@ export function useStudyNotes() {
 
 			if (!signedInUser) {
 				lastLoadedTokenRef.current = null;
+				setActiveDbNoteId(null);
 				setDbNotes([]);
 				setDbNotesLoading(false);
 				return;
@@ -211,6 +213,7 @@ export function useStudyNotes() {
 		await supabase.auth.signOut();
 		setNotes([]);
 		setActiveNote(-1);
+		setActiveDbNoteId(null);
 		setDbNotes([]);
 	};
 
@@ -279,9 +282,11 @@ export function useStudyNotes() {
 		authLoading,
 		dbNotes,
 		dbNotesLoading,
+		activeDbNoteId,
 		editingNote,
 		setNotes,
 		setActiveNote,
+		setActiveDbNoteId,
 		setPreview,
 		setIsDragging,
 		setEditingNote,
