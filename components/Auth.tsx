@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { createClient } from "../lib/supabase";
+import { FONTS_LINK } from "../utils/constants";
 
 type AuthProps = {
 	onAuth: () => void;
@@ -43,70 +44,57 @@ export default function Auth({ onAuth }: AuthProps) {
 	};
 
 	return (
-		<div
-			style={{
-				position: "fixed",
-				inset: 0,
-				background: "rgba(255,255,255,0.95)",
-				backdropFilter: "blur(10px)",
-				zIndex: 1000,
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-			}}
-		>
-			<div
-				style={{
-					background: "#fff",
-					padding: "40px",
-					borderRadius: "16px",
-					boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-					width: "100%",
-					maxWidth: "400px",
-				}}
-			>
+		<div className="auth-overlay">
+			<link href={FONTS_LINK} rel="stylesheet" />
+			<div className="auth-modal">
 				<h2
 					style={{
 						textAlign: "center",
-						marginBottom: "24px",
+						marginBottom: "8px",
 						fontFamily: "'Newsreader', serif",
-						fontSize: "28px",
-						color: "#1a1a2e",
+						fontSize: "32px",
+						fontWeight: 500,
+						color: "#111111",
+						letterSpacing: "-0.03em",
 					}}
 				>
 					{isSignUp ? "Sign Up" : "Sign In"}
 				</h2>
+				<p
+					style={{
+						textAlign: "center",
+						margin: "0 0 24px 0",
+						fontSize: "14px",
+						lineHeight: 1.6,
+						color: "#4B5563",
+						fontFamily: "'DM Sans', sans-serif",
+					}}
+				>
+					{isSignUp
+						? "Create an account to keep your notes synced."
+						: "Sign in to access your saved study notes."}
+				</p>
 				<form onSubmit={handleSubmit}>
 					<input
+						className="auth-input"
 						type="email"
 						placeholder="Email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required
 						style={{
-							width: "100%",
-							padding: "12px 16px",
 							marginBottom: "12px",
-							border: "1px solid #D1D5DB",
-							borderRadius: "8px",
-							fontSize: "16px",
-							fontFamily: "'DM Sans', sans-serif",
 						}}
 					/>
 					<input
+						className="auth-input"
 						type="password"
 						placeholder="Password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						required
 						style={{
-							width: "100%",
-							padding: "12px 16px",
-							marginBottom: "20px",
-							border: "1px solid #D1D5DB",
-							borderRadius: "8px",
-							fontSize: "16px",
-							fontFamily: "'DM Sans', sans-serif",
+							marginBottom: "18px",
 						}}
 					/>
 					{error && (
@@ -122,18 +110,10 @@ export default function Auth({ onAuth }: AuthProps) {
 						</p>
 					)}
 					<button
+						className="auth-submit"
 						type="submit"
 						disabled={loading}
 						style={{
-							width: "100%",
-							padding: "12px",
-							background: "#1a1a2e",
-							color: "#fff",
-							border: "none",
-							borderRadius: "8px",
-							fontSize: "16px",
-							fontFamily: "'DM Sans', sans-serif",
-							fontWeight: 600,
 							cursor: loading ? "not-allowed" : "pointer",
 							opacity: loading ? 0.7 : 1,
 						}}
@@ -156,9 +136,11 @@ export default function Auth({ onAuth }: AuthProps) {
 						style={{
 							background: "none",
 							border: "none",
-							color: "#818CF8",
+							color: "#111111",
 							cursor: "pointer",
 							textDecoration: "underline",
+							fontWeight: 600,
+							fontFamily: "'DM Sans', sans-serif",
 						}}
 					>
 						{isSignUp ? "Sign In" : "Sign Up"}

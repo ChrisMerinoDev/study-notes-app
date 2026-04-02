@@ -1,26 +1,186 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+	--background: #ffffff;
+	--foreground: #171717;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+	:root {
+		--background: #0a0a0a;
+		--foreground: #ededed;
+	}
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+	background: var(--background);
+	color: var(--foreground);
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+.app-layout {
+	min-height: 100vh;
+	position: relative;
+	font-family: "DM Sans", sans-serif;
+}
+
+.app-shell {
+	display: flex;
+	min-height: 100vh;
+	position: relative;
+}
+
+.app-sidebar {
+	width: 260px;
+	flex-shrink: 0;
+	border-right: 1px solid #e5e7eb;
+	background: rgba(255, 255, 255, 0.5);
+	backdrop-filter: blur(12px);
+	padding: 32px 20px;
+	display: flex;
+	flex-direction: column;
+}
+
+.app-main {
+	flex: 1;
+	padding: 40px 48px;
+	max-width: 860px;
+	margin: 0 auto;
+	overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+	.app-shell {
+		flex-direction: column;
+	}
+
+	.app-sidebar {
+		width: 100%;
+		border-right: none;
+		border-bottom: 1px solid #e5e7eb;
+		padding: 20px;
+	}
+
+	.app-main {
+		padding: 24px 18px;
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 640px) {
+	.app-sidebar {
+		padding: 16px;
+	}
+
+	.app-main {
+		padding: 18px 14px;
+	}
+}
+
+/* Modal responsiveness */
+.auth-overlay {
+	position: fixed;
+	inset: 0;
+	background:
+		radial-gradient(circle at top left, rgba(0, 0, 0, 0.03), transparent 32%),
+		linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+	backdrop-filter: blur(14px);
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+}
+
+.auth-modal {
+	background: #fff;
+	padding: 32px 28px 26px;
+	border-radius: 18px;
+	border: 1px solid rgba(17, 17, 17, 0.08);
+	box-shadow:
+		0 22px 60px rgba(15, 23, 42, 0.08),
+		0 4px 14px rgba(15, 23, 42, 0.06);
+	width: 100%;
+	max-width: 360px;
+	color: #111111;
+}
+
+.auth-input {
+	width: 100%;
+	padding: 12px 14px;
+	border: 1px solid #d1d5db;
+	border-radius: 10px;
+	font-size: 15px;
+	font-family: "DM Sans", sans-serif;
+	color: #111111;
+	background: #ffffff;
+	outline: none;
+	transition:
+		border-color 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.auth-input::placeholder {
+	color: #4b5563;
+	opacity: 1;
+}
+
+.auth-input:focus {
+	border-color: #111111;
+	box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+}
+
+.auth-submit {
+	width: 100%;
+	padding: 12px;
+	background: #111111;
+	color: #ffffff;
+	border: none;
+	border-radius: 10px;
+	font-size: 15px;
+	font-family: "DM Sans", sans-serif;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+.edit-note-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.45);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	padding: 20px;
+}
+
+.edit-note-modal {
+	width: 100%;
+	max-width: 800px;
+	background: #fff;
+	border-radius: 16px;
+	padding: 24px;
+	box-shadow: 0 18px 30px rgba(0, 0, 0, 0.15);
+	overflow: auto;
+	max-height: 90vh;
+}
+
+@media (max-width: 640px) {
+	.auth-modal {
+		padding: 24px 18px 20px;
+		max-width: 100%;
+	}
+
+	.edit-note-modal {
+		padding: 16px;
+		margin: 10px;
+		max-width: calc(100vw - 20px);
+	}
 }

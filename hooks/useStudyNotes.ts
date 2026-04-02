@@ -43,8 +43,7 @@ export function useStudyNotes() {
 	const [user, setUser] = useState<User | null>(null);
 	const [dbNotes, setDbNotes] = useState<DbNote[]>([]);
 	const [editingNote, setEditingNote] = useState<DbNote | null>(null);
-
-	const supabase = createClient();
+	const [supabase] = useState(() => createClient());
 
 	const loadNotes = useCallback(async () => {
 		const { data, error } = await supabase
@@ -79,7 +78,7 @@ export function useStudyNotes() {
 		});
 
 		return () => subscription.unsubscribe();
-	}, [loadNotes, supabase.auth]);
+	}, [loadNotes, supabase]);
 
 	const saveNote = async (note: StudyNote) => {
 		if (!user) return;
