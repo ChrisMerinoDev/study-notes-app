@@ -31,18 +31,10 @@ export async function GET(request: Request) {
 			);
 		}
 
-		const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-			global: {
-				headers: {
-					authorization: `Bearer ${token}`,
-				},
-			},
-		});
-
 		const {
 			data: { user },
 			error: authError,
-		} = await userClient.auth.getUser();
+		} = await supabase.auth.getUser(token);
 
 		if (authError || !user) {
 			return NextResponse.json(
