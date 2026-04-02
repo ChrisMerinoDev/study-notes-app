@@ -23,6 +23,7 @@ export default function StudyNotesApp() {
 		isDragging,
 		user,
 		dbNotes,
+		dbNotesLoading,
 		editingNote,
 		setNotes,
 		setActiveNote,
@@ -124,16 +125,29 @@ export default function StudyNotesApp() {
 						+ New Note
 					</button>
 
-					<SavedNotes
-						notes={dbNotes}
-						activeIdx={activeNote}
-						onSelect={(i) => {
-							setNotes([dbNotes[i]]);
-							setActiveNote(0);
-						}}
-						onEdit={(i) => setEditingNote(dbNotes[i])}
-						onDelete={(id) => deleteNote(id)}
-					/>
+					{dbNotesLoading ? (
+						<div
+							style={{
+								padding: "16px",
+								textAlign: "center",
+								color: "#9CA3AF",
+								fontSize: "14px",
+							}}
+						>
+							<p>Loading your notes...</p>
+						</div>
+					) : (
+						<SavedNotes
+							notes={dbNotes}
+							activeIdx={activeNote}
+							onSelect={(i) => {
+								setNotes([dbNotes[i]]);
+								setActiveNote(0);
+							}}
+							onEdit={(i) => setEditingNote(dbNotes[i])}
+							onDelete={(id) => deleteNote(id)}
+						/>
+					)}
 
 					<button
 						onClick={signOut}

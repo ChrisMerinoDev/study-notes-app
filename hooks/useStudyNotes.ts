@@ -42,43 +42,42 @@ export function useStudyNotes() {
 	const [isDragging, setIsDragging] = useState<boolean>(false);
 	const [user, setUser] = useState<User | null>(null);
 	const [dbNotes, setDbNotes] = useState<DbNote[]>([]);
+	const [dbNotesLoading, setDbNotesLoading] = useState<boolean>(false);
 	const [editingNote, setEditingNote] = useState<DbNote | null>(null);
 	const [supabase] = useState(() => createClient());
 
 	const loadNotes = useCallback(async () => {
-		const { data, error } = await supabase
-			.from("notes")
-			.select("*")
-			.order("created_at", { ascending: false });
-		if (error) console.error(error);
-		else setDbNotes(data ?? []);
+		setDbNotesLoading(true);
+		try {
+			const { data, error } = await supabase
+				.from("notes")
+				.select("*")
+				.order("created_at", { ascending: false });
+			if (error) console.error(error);
+			else setDbNotes(data ?? []);
+		} finally {
+			setDbNotesLoading(false);
+		}
 	}, [supabase]);
 
 	useEffect(() => {
-		const checkUser = async () => {
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
-			if (user) {
-				setUser(user);
-				await loadNotes();
-			}
-		};
-
-		checkUser();
-
+		// Listen for auth changes - this will fire immediately if user is already logged in
 		const {
 			data: { subscription },
-		} = supabase.auth.onAuthStateChange((event, session) => {
+		} = supabase.auth.onAuthStateChange(async (event, session) => {
 			const signedInUser = session?.user ?? null;
 			setUser(signedInUser);
+			
+			// Fetch notes immediately when user logs in
 			if (signedInUser) {
-				loadNotes();
+				await loadNotes();
+			} else {
+				setDbNotes([]);
 			}
 		});
 
 		return () => subscription.unsubscribe();
-	}, [loadNotes, supabase]);
+	}, [supabase, loadNotes]);
 
 	const saveNote = async (note: StudyNote) => {
 		if (!user) return;
@@ -182,6 +181,7 @@ export function useStudyNotes() {
 		isDragging,
 		user,
 		dbNotes,
+		dbNotesLoading,
 		editingNote,
 		setNotes,
 		setActiveNote,
