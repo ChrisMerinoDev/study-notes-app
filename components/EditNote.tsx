@@ -34,30 +34,8 @@ export default function EditNote({ note, onSave, onCancel }: EditNoteProps) {
 	};
 
 	return (
-		<div
-			style={{
-				position: "fixed",
-				inset: 0,
-				background: "rgba(0,0,0,0.45)",
-				display: "flex",
-				justifyContent: "center",
-				alignItems: "center",
-				zIndex: 1000,
-				padding: "20px",
-			}}
-		>
-			<div
-				style={{
-					width: "100%",
-					maxWidth: "800px",
-					background: "#fff",
-					borderRadius: "16px",
-					padding: "24px",
-					boxShadow: "0 18px 30px rgba(0,0,0,0.15)",
-					overflow: "auto",
-					maxHeight: "90vh",
-				}}
-			>
+		<div className="edit-note-overlay">
+			<div className="edit-note-modal">
 				<h2 style={{ marginBottom: "16px" }}>Edit note</h2>
 				<input
 					value={title}

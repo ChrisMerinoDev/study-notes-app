@@ -54,37 +54,13 @@ export default function StudyNotesApp() {
 		);
 
 	return (
-		<div
-			style={{
-				minHeight: "100vh",
-				position: "relative",
-				fontFamily: "'DM Sans', sans-serif",
-			}}
-		>
+		<div className="app-layout">
 			<link href={FONTS_LINK} rel="stylesheet" />
 			<PaperTexture />
 
-			<div
-				style={{
-					position: "relative",
-					zIndex: 1,
-					display: "flex",
-					minHeight: "100vh",
-				}}
-			>
+			<div className="app-shell">
 				{/* Sidebar */}
-				<div
-					style={{
-						width: "260px",
-						flexShrink: 0,
-						borderRight: "1px solid #E5E7EB",
-						background: "rgba(255,255,255,0.5)",
-						backdropFilter: "blur(12px)",
-						padding: "32px 20px",
-						display: "flex",
-						flexDirection: "column",
-					}}
-				>
+				<div className="app-sidebar">
 					{/* Logo */}
 					<div style={{ marginBottom: "40px" }}>
 						<div
@@ -205,15 +181,7 @@ export default function StudyNotesApp() {
 				</div>
 
 				{/* Main area */}
-				<div
-					style={{
-						flex: 1,
-						padding: "40px 48px",
-						maxWidth: "860px",
-						margin: "0 auto",
-						overflowY: "auto",
-					}}
-				>
+				<div className="app-main">
 					{!currentNote && !loading && (
 						<>
 							{/* Header */}
