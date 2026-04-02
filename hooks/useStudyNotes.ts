@@ -49,12 +49,34 @@ export function useStudyNotes() {
 	const loadNotes = useCallback(async () => {
 		setDbNotesLoading(true);
 		try {
-			const { data, error } = await supabase
-				.from("notes")
-				.select("*")
-				.order("created_at", { ascending: false });
-			if (error) console.error(error);
-			else setDbNotes(data ?? []);
+			// Get the current session token
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			if (!session?.access_token) {
+				console.error("No active session");
+				setDbNotes([]);
+				return;
+			}
+
+			// Call the protected API endpoint with the session token
+			const response = await fetch("/api/notes", {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${session.access_token}`,
+				},
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				console.error("Failed to fetch notes:", errorData.error);
+				setDbNotes([]);
+				return;
+			}
+
+			const { notes } = await response.json();
+			setDbNotes(notes ?? []);
 		} finally {
 			setDbNotesLoading(false);
 		}
