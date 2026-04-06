@@ -5,7 +5,7 @@ type SavedNotesProps = {
 	activeId: string | null;
 	onSelect: (index: number) => void;
 	onEdit: (index: number) => void;
-	onDelete: (id: string) => void;
+	onDelete: (note: DbNote) => void;
 };
 
 function SavedNotes({
@@ -88,7 +88,7 @@ function SavedNotes({
 							<button
 								onClick={(e) => {
 									e.stopPropagation();
-									onDelete(note.id);
+									onDelete(note);
 								}}
 								style={{
 									background: "none",

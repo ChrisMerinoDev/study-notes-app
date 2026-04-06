@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { FONTS_LINK } from "../utils/constants";
 import { useStudyNotes } from "../hooks/useStudyNotes";
+import type { DbNote, StudyNote, StudyNoteSection } from "../hooks/useStudyNotes";
 import Auth from "../components/Auth";
 import EditNote from "../components/EditNote";
 import PaperTexture from "../components/ui/PaperTexture";
@@ -40,8 +42,106 @@ export default function StudyNotesApp() {
 		processImage,
 		handleImageUpload,
 	} = useStudyNotes();
+	const [sectionError, setSectionError] = useState<string | null>(null);
+	const [isSyncingSections, setIsSyncingSections] = useState(false);
+	const [pendingDeleteNote, setPendingDeleteNote] = useState<DbNote | null>(null);
 
 	const currentNote = activeNote >= 0 ? notes[activeNote] : null;
+
+	const persistActiveNote = async (nextNote: StudyNote) => {
+		if (!activeDbNoteId) {
+			throw new Error("No saved note selected.");
+		}
+
+		const updatedNote = await updateNote(activeDbNoteId, nextNote);
+
+		if (!updatedNote) {
+			throw new Error("Failed to save note changes.");
+		}
+
+		setSectionError(null);
+	};
+
+	const replaceActiveNote = (nextNote: StudyNote) => {
+		setNotes((prevNotes) =>
+			prevNotes.map((note, noteIndex) =>
+				noteIndex === activeNote ? nextNote : note,
+			),
+		);
+	};
+
+	const updateCurrentNoteSections = (
+		nextSections: StudyNoteSection[],
+		previousSections: StudyNoteSection[],
+	) => {
+		if (!currentNote || activeNote < 0) return;
+
+		const nextNote = {
+			...currentNote,
+			sections: nextSections,
+		};
+
+		const previousNote = {
+			...currentNote,
+			sections: previousSections,
+		};
+
+		replaceActiveNote(nextNote);
+		setSectionError(null);
+		setIsSyncingSections(true);
+
+		void persistActiveNote(nextNote)
+			.catch((err) => {
+				console.error(err);
+				replaceActiveNote(previousNote);
+				setSectionError("Could not save your section changes. Changes were reverted.");
+			})
+			.finally(() => {
+				setIsSyncingSections(false);
+			});
+	};
+
+	const handleSectionSave = (
+		sectionIndex: number,
+		nextSection: StudyNoteSection,
+	) => {
+		if (!currentNote) return;
+
+		const previousSections = currentNote.sections;
+		const nextSections = currentNote.sections.map((section, index) =>
+			index === sectionIndex ? nextSection : section,
+		);
+
+		updateCurrentNoteSections(nextSections, previousSections);
+	};
+
+	const handleSectionDelete = (sectionIndex: number) => {
+		if (!currentNote) return;
+
+		const previousSections = currentNote.sections;
+		const nextSections = currentNote.sections.filter(
+			(_, index) => index !== sectionIndex,
+		);
+
+		updateCurrentNoteSections(nextSections, previousSections);
+	};
+
+	const confirmDeleteNote = async () => {
+		if (!pendingDeleteNote) return;
+
+		const deletingActiveNote = pendingDeleteNote.id === activeDbNoteId;
+		await deleteNote(pendingDeleteNote.id);
+
+		if (deletingActiveNote) {
+			setNotes([]);
+			setActiveNote(-1);
+			setActiveDbNoteId(null);
+			setPreview(null);
+			setSectionError(null);
+		}
+
+		setPendingDeleteNote(null);
+	};
 
 	if (authLoading) {
 		return (
@@ -183,7 +283,7 @@ export default function StudyNotesApp() {
 								setActiveDbNoteId(dbNotes[i].id);
 							}}
 							onEdit={(i) => setEditingNote(dbNotes[i])}
-							onDelete={(id) => deleteNote(id)}
+							onDelete={(note) => setPendingDeleteNote(note)}
 						/>
 					)}
 
@@ -387,6 +487,42 @@ export default function StudyNotesApp() {
 								/>
 							</div>
 
+							{sectionError && (
+								<div
+									style={{
+										marginBottom: "20px",
+										padding: "14px 18px",
+										background: "#FEF2F2",
+										borderRadius: "12px",
+										border: "1px solid #FECACA",
+									}}
+								>
+									<p
+										style={{
+											margin: 0,
+											fontFamily: "'DM Sans', sans-serif",
+											fontSize: "14px",
+											color: "#B91C1C",
+										}}
+									>
+										{sectionError}
+									</p>
+								</div>
+							)}
+
+							{isSyncingSections && (
+								<p
+									style={{
+										margin: "0 0 20px 0",
+										fontFamily: "'DM Sans', sans-serif",
+										fontSize: "13px",
+										color: "#6B7280",
+									}}
+								>
+									Saving changes...
+								</p>
+							)}
+
 							{/* Section cards */}
 							<div
 								style={{
@@ -396,7 +532,13 @@ export default function StudyNotesApp() {
 								}}
 							>
 								{currentNote.sections.map((section, i) => (
-									<NoteCard key={i} section={section} index={i} />
+									<NoteCard
+										key={`${section.heading}-${i}`}
+										section={section}
+										index={i}
+										onSave={(nextSection) => handleSectionSave(i, nextSection)}
+										onDelete={() => handleSectionDelete(i)}
+									/>
 								))}
 							</div>
 
@@ -432,6 +574,38 @@ export default function StudyNotesApp() {
 					)}
 				</div>
 			</div>
+
+			{pendingDeleteNote && (
+				<div className="confirm-modal-overlay">
+					<div className="confirm-modal">
+						<p className="confirm-modal-eyebrow">Delete Note</p>
+						<h3 className="confirm-modal-title">
+							Are you sure you want to delete this note?
+						</h3>
+						<p className="confirm-modal-text">
+							&ldquo;{pendingDeleteNote.title}&rdquo; will be removed from your
+							saved notes.
+							This action cannot be undone.
+						</p>
+						<div className="confirm-modal-actions">
+							<button
+								type="button"
+								className="confirm-modal-cancel"
+								onClick={() => setPendingDeleteNote(null)}
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								className="confirm-modal-delete"
+								onClick={() => void confirmDeleteNote()}
+							>
+								Delete Note
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

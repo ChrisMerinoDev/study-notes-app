@@ -178,29 +178,45 @@ export function useStudyNotes() {
 	}, [supabase, syncSessionState]);
 
 	const saveNote = async (note: StudyNote) => {
-		if (!user) return;
+		if (!user) return null;
 
-		const { error } = await supabase.from("notes").insert({
-			user_id: user.id,
-			title: note.title,
-			sections: note.sections,
-		});
+		const { data, error } = await supabase
+			.from("notes")
+			.insert({
+				user_id: user.id,
+				title: note.title,
+				sections: note.sections,
+			})
+			.select()
+			.single<DbNote>();
 
-		if (error) console.error(error);
-		else loadNotes();
+		if (error) {
+			console.error(error);
+			return null;
+		}
+
+		await loadNotes();
+		return data;
 	};
 
 	const updateNote = async (id: string, note: StudyNote) => {
-		const { error } = await supabase
+		const { data, error } = await supabase
 			.from("notes")
 			.update({
 				title: note.title,
 				sections: note.sections,
 			})
-			.eq("id", id);
+			.eq("id", id)
+			.select()
+			.single<DbNote>();
 
-		if (error) console.error(error);
-		else loadNotes();
+		if (error) {
+			console.error(error);
+			return null;
+		}
+
+		await loadNotes();
+		return data;
 	};
 
 	const deleteNote = async (id: string) => {
@@ -254,7 +270,10 @@ export function useStudyNotes() {
 			setPreview(null);
 
 			if (user) {
-				await saveNote(parsed);
+				const savedNote = await saveNote(parsed);
+				if (savedNote) {
+					setActiveDbNoteId(savedNote.id);
+				}
 			}
 		} catch (err) {
 			console.error(err);
