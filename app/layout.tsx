@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 	title: "StudyNotes",
 	description: "Turn screenshots into polished, structured study notes.",
 	icons: {
-		icon: "📚",
+		icon: "/studynotes.svg",
 	},
 };
 
