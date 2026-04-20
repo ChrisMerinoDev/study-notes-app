@@ -37,17 +37,7 @@ function UploadZone({
 			onDragOver={handleDragOver}
 			onDragLeave={() => setIsDragging(false)}
 			onClick={() => fileRef.current?.click()}
-			style={{
-				border: `2px dashed ${isDragging ? "#818CF8" : "#D1D5DB"}`,
-				borderRadius: "20px",
-				padding: "56px 40px",
-				textAlign: "center",
-				cursor: "pointer",
-				background: isDragging ? "#EEF2FF" : "rgba(255,255,255,0.7)",
-				backdropFilter: "blur(8px)",
-				transition: "all 0.3s ease",
-				transform: isDragging ? "scale(1.01)" : "scale(1)",
-			}}
+			className={`upload-zone ${isDragging ? "upload-zone-dragging" : ""}`}
 		>
 			<input
 				ref={fileRef}
@@ -59,36 +49,16 @@ function UploadZone({
 					if (file) onImageUpload(file);
 				}}
 			/>
-			<div
-				style={{
-					fontSize: "48px",
-					marginBottom: "16px",
-					filter: "grayscale(0.2)",
-				}}
-			>
-				📸
+			<div className="upload-icon-wrap">
+				<div className="upload-icon-core">+</div>
 			</div>
-			<p
-				style={{
-					fontFamily: "'Newsreader', serif",
-					fontSize: "22px",
-					fontWeight: 400,
-					color: "#1a1a2e",
-					margin: "0 0 8px 0",
-				}}
-			>
-				Drop your lecture screenshot here
-			</p>
-			<p
-				style={{
-					fontFamily: "'DM Sans', sans-serif",
-					fontSize: "14px",
-					color: "#9CA3AF",
-					margin: 0,
-				}}
-			>
-				or click to browse · PNG, JPG, WEBP
-			</p>
+			<p className="upload-title">Drop your lecture screenshot here</p>
+			<p className="upload-description">or click to browse PNG, JPG, and WEBP files</p>
+			<div className="upload-specs">
+				<span>Lecture slides</span>
+				<span>Textbook pages</span>
+				<span>Whiteboards</span>
+			</div>
 		</div>
 	);
 }

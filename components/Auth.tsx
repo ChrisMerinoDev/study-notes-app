@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from "react";
 import { createClient } from "../lib/supabase";
-import { FONTS_LINK } from "../utils/constants";
 
 type AuthProps = {
 	onAuth: () => void;
@@ -45,36 +44,15 @@ export default function Auth({ onAuth }: AuthProps) {
 
 	return (
 		<div className="auth-overlay">
-			<link href={FONTS_LINK} rel="stylesheet" />
 			<div className="auth-modal">
-				<h2
-					style={{
-						textAlign: "center",
-						marginBottom: "8px",
-						fontFamily: "'Newsreader', serif",
-						fontSize: "32px",
-						fontWeight: 500,
-						color: "#111111",
-						letterSpacing: "-0.03em",
-					}}
-				>
-					{isSignUp ? "Sign Up" : "Sign In"}
-				</h2>
-				<p
-					style={{
-						textAlign: "center",
-						margin: "0 0 24px 0",
-						fontSize: "14px",
-						lineHeight: 1.6,
-						color: "#4B5563",
-						fontFamily: "'DM Sans', sans-serif",
-					}}
-				>
+				<div className="auth-badge">StudyNotes</div>
+				<h2 className="auth-title">{isSignUp ? "Create your account" : "Welcome back"}</h2>
+				<p className="auth-copy">
 					{isSignUp
-						? "Create an account to keep your notes synced."
-						: "Sign in to access your saved study notes."}
+						? "Create an account to save, revisit, and refine your notes from any device."
+						: "Sign in to access your saved study notes and continue editing where you left off."}
 				</p>
-				<form onSubmit={handleSubmit}>
+				<form onSubmit={handleSubmit} className="auth-form">
 					<input
 						className="auth-input"
 						type="email"
@@ -82,9 +60,6 @@ export default function Auth({ onAuth }: AuthProps) {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required
-						style={{
-							marginBottom: "12px",
-						}}
 					/>
 					<input
 						className="auth-input"
@@ -93,55 +68,22 @@ export default function Auth({ onAuth }: AuthProps) {
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						required
-						style={{
-							marginBottom: "18px",
-						}}
 					/>
-					{error && (
-						<p
-							style={{
-								color: "#DC2626",
-								fontSize: "14px",
-								marginBottom: "12px",
-								textAlign: "center",
-							}}
-						>
-							{error}
-						</p>
-					)}
+					{error && <p className="auth-error">{error}</p>}
 					<button
 						className="auth-submit"
 						type="submit"
 						disabled={loading}
-						style={{
-							cursor: loading ? "not-allowed" : "pointer",
-							opacity: loading ? 0.7 : 1,
-						}}
 					>
-						{loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+						{loading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
 					</button>
 				</form>
-				<p
-					style={{
-						textAlign: "center",
-						marginTop: "16px",
-						fontSize: "14px",
-						color: "#6B7280",
-					}}
-				>
-					{isSignUp ? "Already have an account?" : "Don't have an account?"}
+				<p className="auth-switch-copy">
+					{isSignUp ? "Already have an account?" : "Need an account?"}
 					<button
 						type="button"
 						onClick={() => setIsSignUp(!isSignUp)}
-						style={{
-							background: "none",
-							border: "none",
-							color: "#111111",
-							cursor: "pointer",
-							textDecoration: "underline",
-							fontWeight: 600,
-							fontFamily: "'DM Sans', sans-serif",
-						}}
+						className="auth-switch-button"
 					>
 						{isSignUp ? "Sign In" : "Sign Up"}
 					</button>

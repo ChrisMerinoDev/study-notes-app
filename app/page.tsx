@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { FONTS_LINK } from "../utils/constants";
 import { useStudyNotes } from "../hooks/useStudyNotes";
-import type { DbNote, StudyNote, StudyNoteSection } from "../hooks/useStudyNotes";
+import type {
+	DbNote,
+	StudyNote,
+	StudyNoteSection,
+} from "../hooks/useStudyNotes";
 import Auth from "../components/Auth";
 import EditNote from "../components/EditNote";
 import PaperTexture from "../components/ui/PaperTexture";
@@ -44,9 +47,12 @@ export default function StudyNotesApp() {
 	} = useStudyNotes();
 	const [sectionError, setSectionError] = useState<string | null>(null);
 	const [isSyncingSections, setIsSyncingSections] = useState(false);
-	const [pendingDeleteNote, setPendingDeleteNote] = useState<DbNote | null>(null);
+	const [pendingDeleteNote, setPendingDeleteNote] = useState<DbNote | null>(
+		null,
+	);
 
 	const currentNote = activeNote >= 0 ? notes[activeNote] : null;
+	const noteCountLabel = `${dbNotes.length} saved note${dbNotes.length === 1 ? "" : "s"}`;
 
 	const persistActiveNote = async (nextNote: StudyNote) => {
 		if (!activeDbNoteId) {
@@ -94,7 +100,9 @@ export default function StudyNotesApp() {
 			.catch((err) => {
 				console.error(err);
 				replaceActiveNote(previousNote);
-				setSectionError("Could not save your section changes. Changes were reverted.");
+				setSectionError(
+					"Could not save your section changes. Changes were reverted.",
+				);
 			})
 			.finally(() => {
 				setIsSyncingSections(false);
@@ -146,29 +154,10 @@ export default function StudyNotesApp() {
 	if (authLoading) {
 		return (
 			<div className="auth-overlay">
-				<link href={FONTS_LINK} rel="stylesheet" />
-				<div className="auth-modal" style={{ textAlign: "center" }}>
-					<h2
-						style={{
-							marginBottom: "8px",
-							fontFamily: "'Newsreader', serif",
-							fontSize: "32px",
-							fontWeight: 500,
-							color: "#111111",
-							letterSpacing: "-0.03em",
-						}}
-					>
-						Restoring session
-					</h2>
-					<p
-						style={{
-							margin: 0,
-							fontSize: "14px",
-							lineHeight: 1.6,
-							color: "#4B5563",
-							fontFamily: "'DM Sans', sans-serif",
-						}}
-					>
+				<div className="auth-modal auth-modal-loading">
+					<p className="auth-kicker">Session</p>
+					<h2 className="auth-title">Restoring session</h2>
+					<p className="auth-copy">
 						Validating your saved login and loading your notes.
 					</p>
 				</div>
@@ -178,7 +167,7 @@ export default function StudyNotesApp() {
 
 	if (!user) return <Auth onAuth={() => {}} />;
 
-	if (editingNote)
+	if (editingNote) {
 		return (
 			<EditNote
 				note={editingNote}
@@ -189,52 +178,33 @@ export default function StudyNotesApp() {
 				onCancel={() => setEditingNote(null)}
 			/>
 		);
+	}
 
 	return (
 		<div className="app-layout">
-			<link href={FONTS_LINK} rel="stylesheet" />
 			<PaperTexture />
 
 			<div className="app-shell">
-				{/* Sidebar */}
-				<div className="app-sidebar">
-					{/* Logo */}
-					<div style={{ marginBottom: "40px" }}>
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: "10px",
-								marginBottom: "4px",
-							}}
-						>
-							<span style={{ fontSize: "24px" }}>📓</span>
-							<h1
-								style={{
-									fontFamily: "'Newsreader', serif",
-									fontSize: "24px",
-									fontWeight: 500,
-									color: "#1a1a2e",
-									margin: 0,
-									letterSpacing: "-0.02em",
-								}}
-							>
-								StudyNotes
-							</h1>
+				<aside className="app-sidebar">
+					<div className="sidebar-brand">
+						<div className="sidebar-brand-mark">SN</div>
+						<div>
+							<p className="sidebar-eyebrow">Study workspace</p>
+							<h1 className="sidebar-title">StudyNotes</h1>
+							<p className="sidebar-subtitle">AI-structured lecture capture</p>
 						</div>
-						<p
-							style={{
-								fontSize: "12px",
-								color: "#9CA3AF",
-								margin: "4px 0 0 34px",
-								fontWeight: 400,
-							}}
-						>
-							AI-powered lecture notes
-						</p>
 					</div>
 
-					{/* New Note button */}
+					<div className="sidebar-panel sidebar-panel-emphasis">
+						<p className="sidebar-panel-label">Quick start</p>
+						<h2 className="sidebar-panel-title">
+							Capture a clean screenshot, then let the app organize the material
+							into sections.
+						</h2>
+						<p className="sidebar-panel-copy">
+							Works best with lecture slides, textbook pages, whiteboards, and
+							handwritten notes.
+						</p>
 						<button
 							onClick={() => {
 								setActiveNote(-1);
@@ -242,176 +212,115 @@ export default function StudyNotesApp() {
 								setPreview(null);
 								setError(null);
 							}}
-						style={{
-							background: "#1a1a2e",
-							color: "#fff",
-							border: "none",
-							borderRadius: "12px",
-							padding: "12px 20px",
-							cursor: "pointer",
-							fontFamily: "'DM Sans', sans-serif",
-							fontSize: "14px",
-							fontWeight: 600,
-							marginBottom: "28px",
-							transition: "all 0.2s ease",
-							letterSpacing: "0.01em",
-						}}
-						onMouseEnter={(e) => (e.currentTarget.style.background = "#2d2b55")}
-						onMouseLeave={(e) => (e.currentTarget.style.background = "#1a1a2e")}
-					>
-						+ New Note
-					</button>
-
-					{dbNotesLoading ? (
-						<div
-							style={{
-								padding: "16px",
-								textAlign: "center",
-								color: "#9CA3AF",
-								fontSize: "14px",
-							}}
+							className="button button-primary sidebar-cta"
 						>
-							<p>Loading your notes...</p>
-						</div>
-					) : (
-						<SavedNotes
-							notes={dbNotes}
-							activeId={activeDbNoteId}
-							onSelect={(i) => {
-								setNotes([dbNotes[i]]);
-								setActiveNote(0);
-								setActiveDbNoteId(dbNotes[i].id);
-							}}
-							onEdit={(i) => setEditingNote(dbNotes[i])}
-							onDelete={(note) => setPendingDeleteNote(note)}
-						/>
-					)}
-
-					<button
-						onClick={signOut}
-						style={{
-							background: "#DC2626",
-							color: "#fff",
-							border: "none",
-							borderRadius: "8px",
-							padding: "8px 16px",
-							cursor: "pointer",
-							fontFamily: "'DM Sans', sans-serif",
-							fontSize: "12px",
-							fontWeight: 600,
-							marginBottom: "16px",
-						}}
-					>
-						Sign Out
-					</button>
-
-					{/* Tips */}
-					<div
-						style={{
-							marginTop: "auto",
-							padding: "16px",
-							background: "#F9FAFB",
-							borderRadius: "12px",
-						}}
-					>
-						<p
-							style={{
-								fontSize: "12px",
-								color: "#6B7280",
-								margin: 0,
-								lineHeight: 1.6,
-							}}
-						>
-							<strong style={{ color: "#4B5563" }}>Tips:</strong>
-							<br />
-							• Use clear, well-lit screenshots
-							<br />
-							• Crop to just the content area
-							<br />• Works with slides, textbooks & handwritten notes
-						</p>
+							Create New Note
+						</button>
 					</div>
-				</div>
 
-				{/* Main area */}
-				<div className="app-main">
+					<div className="sidebar-section">
+						<div className="sidebar-section-header">
+							<div>
+								<p className="sidebar-section-label">Library</p>
+								<p className="sidebar-section-meta">{noteCountLabel}</p>
+							</div>
+							<button
+								onClick={signOut}
+								className="button button-danger button-compact"
+								type="button"
+							>
+								Sign Out
+							</button>
+						</div>
+
+						{dbNotesLoading ? (
+							<div className="sidebar-empty-state">
+								<p>Loading your notes...</p>
+							</div>
+						) : (
+							<SavedNotes
+								notes={dbNotes}
+								activeId={activeDbNoteId}
+								onSelect={(i) => {
+									setNotes([dbNotes[i]]);
+									setActiveNote(0);
+									setActiveDbNoteId(dbNotes[i].id);
+								}}
+								onEdit={(i) => setEditingNote(dbNotes[i])}
+								onDelete={(note) => setPendingDeleteNote(note)}
+							/>
+						)}
+					</div>
+
+					<div className="sidebar-panel sidebar-panel-muted">
+						<p className="sidebar-panel-label">Capture tips</p>
+						<ul className="sidebar-tips">
+							<li>
+								Use well-lit screenshots with the content filling the frame.
+							</li>
+							<li>
+								Crop distractions before uploading for cleaner extraction.
+							</li>
+							<li>Dense pages work best when text is sharp and horizontal.</li>
+						</ul>
+					</div>
+				</aside>
+
+				<main className="app-main">
 					{!currentNote && !loading && (
-						<>
-							{/* Header */}
-							<div style={{ marginBottom: "40px", textAlign: "center" }}>
-								<h2
-									style={{
-										fontFamily: "'Newsreader', serif",
-										fontSize: "36px",
-										fontWeight: 400,
-										color: "#1a1a2e",
-										margin: "0 0 10px 0",
-										letterSpacing: "-0.02em",
-									}}
-								>
-									Turn screenshots into
-									<br />
-									<span
-										style={{
-											fontStyle: "italic",
-											fontWeight: 300,
-											background: "linear-gradient(135deg, #818CF8, #C084FC)",
-											WebkitBackgroundClip: "text",
-											WebkitTextFillColor: "transparent",
-										}}
-									>
-										beautiful study notes
-									</span>
+						<section className="hero-layout">
+							<div className="hero-copy">
+								<p className="hero-kicker">Screenshot to study set</p>
+								<h2 className="hero-title">
+									Turn class material into <span>editorial-quality notes</span>
 								</h2>
-								<p
-									style={{
-										fontSize: "15px",
-										color: "#9CA3AF",
-										maxWidth: "420px",
-										margin: "0 auto",
-										lineHeight: 1.6,
-									}}
-								>
-									Upload a photo of your lecture slides, textbook pages, or
-									whiteboard and let AI organize it into structured, readable
-									notes.
+								<p className="hero-description">
+									Upload a slide, textbook page, or whiteboard photo and get
+									structured notes you can scan, edit, and keep synced.
 								</p>
 							</div>
 
-							{preview && (
-								<div style={{ textAlign: "center" }}>
+							<div className="hero-stats" aria-label="App benefits">
+								<div className="hero-stat-card">
+									<span className="hero-stat-value">2-8</span>
+									<span className="hero-stat-label">
+										smart sections per note
+									</span>
+								</div>
+								<div className="hero-stat-card">
+									<span className="hero-stat-value">Live</span>
+									<span className="hero-stat-label">
+										editing after generation
+									</span>
+								</div>
+								<div className="hero-stat-card">
+									<span className="hero-stat-value">Cloud</span>
+									<span className="hero-stat-label">saved note library</span>
+								</div>
+							</div>
+
+							{preview ? (
+								<div className="preview-panel">
+									<div className="preview-panel-header">
+										<div>
+											<p className="preview-panel-label">Ready to process</p>
+											<h3 className="preview-panel-title">
+												Review the uploaded capture
+											</h3>
+										</div>
+										<button
+											onClick={() => processImage(preview.file)}
+											className="button button-primary button-large"
+										>
+											Generate Notes
+										</button>
+									</div>
 									<PreviewThumbnail
 										src={preview.url}
 										onRemove={() => setPreview(null)}
 									/>
-									<br />
-									<button
-										onClick={() => processImage(preview.file)}
-										style={{
-											background: "linear-gradient(135deg, #818CF8, #6366F1)",
-											color: "#fff",
-											border: "none",
-											borderRadius: "14px",
-											padding: "14px 36px",
-											cursor: "pointer",
-											fontFamily: "'DM Sans', sans-serif",
-											fontSize: "15px",
-											fontWeight: 600,
-											boxShadow: "0 4px 14px rgba(99,102,241,0.3)",
-											transition: "all 0.2s ease",
-										}}
-										onMouseEnter={(e) =>
-											(e.currentTarget.style.transform = "translateY(-1px)")
-										}
-										onMouseLeave={(e) =>
-											(e.currentTarget.style.transform = "translateY(0)")
-										}
-									>
-										✨ Generate Notes
-									</button>
 								</div>
-							)}
-
-							{!preview && (
+							) : (
 								<UploadZone
 									onImageUpload={handleImageUpload}
 									isDragging={isDragging}
@@ -420,185 +329,79 @@ export default function StudyNotesApp() {
 							)}
 
 							{error && (
-								<div
-									style={{
-										marginTop: "20px",
-										padding: "14px 20px",
-										background: "#FEF2F2",
-										borderRadius: "12px",
-										border: "1px solid #FECACA",
-										textAlign: "center",
-									}}
-								>
-									<p
-										style={{
-											fontSize: "14px",
-											color: "#DC2626",
-											margin: 0,
-										}}
-									>
-										{error}
-									</p>
+								<div className="message-banner message-banner-error">
+									<p>{error}</p>
 								</div>
 							)}
-						</>
+						</section>
 					)}
 
 					{loading && <LoadingState />}
 
 					{currentNote && !loading && (
-						<div>
-							{/* Note title */}
-							<div style={{ marginBottom: "36px" }}>
-								<p
-									style={{
-										fontFamily: "'DM Sans', sans-serif",
-										fontSize: "12px",
-										fontWeight: 600,
-										color: "#818CF8",
-										textTransform: "uppercase",
-										letterSpacing: "0.1em",
-										margin: "0 0 8px 0",
-									}}
-								>
-									Lecture Notes
-								</p>
-								<h2
-									style={{
-										fontFamily: "'Newsreader', serif",
-										fontSize: "34px",
-										fontWeight: 400,
-										color: "#1a1a2e",
-										margin: 0,
-										letterSpacing: "-0.02em",
-										lineHeight: 1.2,
-									}}
-								>
-									{currentNote.title}
-								</h2>
-								<div
-									style={{
-										width: "48px",
-										height: "3px",
-										background: "linear-gradient(90deg, #818CF8, #C084FC)",
-										borderRadius: "2px",
-										marginTop: "16px",
-									}}
-								/>
+						<section className="note-workspace">
+							<div className="note-header-card">
+								<div>
+									<p className="note-header-kicker">Lecture notes</p>
+									<h2 className="note-header-title">{currentNote.title}</h2>
+								</div>
+								<div className="note-header-meta">
+									<span>{currentNote.sections.length} sections</span>
+									<span>{activeDbNoteId ? "Synced" : "Unsaved"}</span>
+								</div>
 							</div>
 
 							{sectionError && (
-								<div
-									style={{
-										marginBottom: "20px",
-										padding: "14px 18px",
-										background: "#FEF2F2",
-										borderRadius: "12px",
-										border: "1px solid #FECACA",
-									}}
-								>
-									<p
-										style={{
-											margin: 0,
-											fontFamily: "'DM Sans', sans-serif",
-											fontSize: "14px",
-											color: "#B91C1C",
-										}}
-									>
-										{sectionError}
-									</p>
+								<div className="message-banner message-banner-error">
+									<p>{sectionError}</p>
 								</div>
 							)}
 
 							{isSyncingSections && (
-								<p
-									style={{
-										margin: "0 0 20px 0",
-										fontFamily: "'DM Sans', sans-serif",
-										fontSize: "13px",
-										color: "#6B7280",
-									}}
-								>
-									Saving changes...
-								</p>
+								<div className="message-banner message-banner-neutral">
+									<p>Saving your section changes...</p>
+								</div>
 							)}
 
-							{/* Section cards */}
-							<div
-								style={{
-									display: "flex",
-									flexDirection: "column",
-									gap: "20px",
-								}}
-							>
-								{currentNote.sections.map((section, i) => (
+							<div className="note-grid">
+								{currentNote.sections.map((section, index) => (
 									<NoteCard
-										key={`${section.heading}-${i}`}
+										key={`${section.heading}-${index}`}
 										section={section}
-										index={i}
-										onSave={(nextSection) => handleSectionSave(i, nextSection)}
-										onDelete={() => handleSectionDelete(i)}
+										index={index}
+										onSave={(updatedSection) =>
+											handleSectionSave(index, updatedSection)
+										}
+										onDelete={() => handleSectionDelete(index)}
 									/>
 								))}
 							</div>
-
-							{/* Footer */}
-							<div
-								style={{
-									textAlign: "center",
-									marginTop: "48px",
-									paddingBottom: "40px",
-								}}
-							>
-								<div
-									style={{
-										width: "32px",
-										height: "1px",
-										background: "#D1D5DB",
-										margin: "0 auto 16px",
-									}}
-								/>
-								<p
-									style={{
-										fontSize: "12px",
-										color: "#C4C4C4",
-										fontStyle: "italic",
-										fontFamily: "'Newsreader', serif",
-									}}
-								>
-									{currentNote.sections.length} sections · Generated by
-									StudyNotes AI
-								</p>
-							</div>
-						</div>
+						</section>
 					)}
-				</div>
+				</main>
 			</div>
 
 			{pendingDeleteNote && (
 				<div className="confirm-modal-overlay">
 					<div className="confirm-modal">
-						<p className="confirm-modal-eyebrow">Delete Note</p>
-						<h3 className="confirm-modal-title">
-							Are you sure you want to delete this note?
-						</h3>
+						<p className="confirm-modal-eyebrow">Delete note</p>
+						<h3 className="confirm-modal-title">Remove this saved note?</h3>
 						<p className="confirm-modal-text">
-							&ldquo;{pendingDeleteNote.title}&rdquo; will be removed from your
-							saved notes.
-							This action cannot be undone.
+							This deletes <strong>{pendingDeleteNote.title}</strong> from your
+							library.
 						</p>
 						<div className="confirm-modal-actions">
 							<button
 								type="button"
-								className="confirm-modal-cancel"
 								onClick={() => setPendingDeleteNote(null)}
+								className="confirm-modal-cancel"
 							>
 								Cancel
 							</button>
 							<button
 								type="button"
-								className="confirm-modal-delete"
 								onClick={() => void confirmDeleteNote()}
+								className="confirm-modal-delete"
 							>
 								Delete Note
 							</button>
